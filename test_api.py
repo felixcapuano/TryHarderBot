@@ -2,7 +2,7 @@ import requests
 import json
 
 
-nickname = "ninja"
+nickname = "M\u039bMMOTH"
 platform = "pc"
 
 url = "https://api.fortnitetracker.com/v1/profile/"
