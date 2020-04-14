@@ -9,6 +9,11 @@ pylint = "*"
 [packages]
 discord-py = "*"
 requests = "*"
+fornitepy = "*"
+fortnitepy = "*"
 
 [requires]
 python_version = "3.7"
+
+[pipenv]
+allow_prereleases = true

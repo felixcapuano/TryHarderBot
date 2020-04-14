@@ -2,7 +2,7 @@ import json
 
 
 usersFile = "users.json"
-user = "felidx"
+user = "felix"
 
 stats = {"ig_name": "Mammoth", "tnr": "1"}
 
