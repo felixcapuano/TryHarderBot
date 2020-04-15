@@ -52,14 +52,14 @@ async def event_device_auth_generate(details, email):
 @fortnite_client.event
 async def event_logout():
     await discord_bot.logout()
-
-@discord_bot.event
-async def on_ready():
-    print('Discord bot ready')
 # region end
 
 # region discord event
 # --------------------
+@discord_bot.event
+async def on_ready():
+    user = ctx.message.author
+
 @discord_bot.event
 async def on_message(message):
     if message.author == discord_bot.user:
@@ -82,14 +82,8 @@ def moderator(ctx):
 # region discord commands
 # -----------------------
 @discord_bot.command()
-@commands.check(admin)
-async def stop(ctx):
-    await discord_bot.logout()
-    print("stop")
-
-@discord_bot.command()
 async def join(ctx):
-    pass
+    print(ctx.message.content)
 
 @discord_bot.command()
 async def up(ctx):
@@ -102,12 +96,12 @@ async def upall(ctx):
 
 @discord_bot.command()
 @commands.check(moderator)
-async def delete(ctx):
+async def rem(ctx):
     print("slt")
 
 @discord_bot.command()
 @commands.check(admin)
-async def delall(ctx):
+async def remall(ctx):
     print("delall")
 # region end
 
