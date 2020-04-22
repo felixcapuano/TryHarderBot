@@ -1,34 +1,59 @@
+import sqlite3 as sql
+import const
+import json
 
 
-async def create_user(ctx, ig_name, platform):
-    user = ctx.message.author
-    
-    print("create user {}".format(user.name)) 
-    users = await discord.get_users()
-
+async def create_user(data):
     # check user existence
-    if not str(user.id) in users.keys():
-    
-        kpg_solo, kpg_duo, kpg_squad, status = await self.get_kpg(platform, ig_name)
-        print("status : ", status)
+    # add user
 
-        if not None in [kpg_solo, kpg_duo, kpg_squad]:
-            stats = {
-                        "ig_name": ig_name,
-                        "kpg_solo": kpg_solo,
-                        "kpg_duo": kpg_duo,
-                        "kpg_squad": kpg_squad,
-                    }
-    
-            users[str(user.id)] = stats
-            
-            await self.set_users(users)
-            await message.channel.send("User number {} has been " \
-                    "created.".format(message.author.id))
-            await message.channel.send(stats)
-        else:
-            await message.channel.send("Error : ".format(status))
+    req = """INSERT INTO users VALUES ('{d_id}',
+                                        '{f_id}',
+                                        '{plat}',
+                                        '{d_w}',
+                                        '{d_k}',
+                                        '{d_g}',
+                                        '{s_w}',
+                                        '{s_k}',
+                                        '{s_g}')
+                                        """.format(**data)
+    res, error = await exec(req)
+        
+    if error is None:
+        return None
     else:
-        await message.channel.send("User number {} is already " \
-                "created.".format(message.author.id))
+        return error
+
+async def is_user_exist(user_id):
+    res = await get_user(user_id)
+    return res is not None 
+
+async def get_user(user_id):
+    req = "SELECT * FROM users WHERE discord_id='{}'".format(user_id)
+    res, error = await exec(req)
+
+    return res
+
+async def remove_users(user_id=None):
+    req = "DELETE FROM users"
+    if user_id is not None:
+        req += " WHERE discord_id='{}'".format(user_id)
+    await exec(req)
+
+async def exec(request):
+    conn = sql.connect(const.db)
+    c = conn.cursor()
+
+    try:
+        c.execute(request)
+
+        result = c.fetchone()
+        return result, None
+    except sql.IntegrityError as error:
+        return None, error
+    finally:
+        conn.commit()
+        conn.close()
+
+
 

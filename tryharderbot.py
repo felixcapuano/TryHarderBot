@@ -2,9 +2,12 @@ import fortnitepy
 import json
 import os
 
+from discord.channel import TextChannel
 from discord.ext import commands
 
 import const
+from engine import *
+from embed import *
 
 # region initialisation
 # ---------------------
@@ -54,22 +57,6 @@ async def event_logout():
     await discord_bot.logout()
 # region end
 
-# region discord event
-# --------------------
-@discord_bot.event
-async def on_ready():
-    user = ctx.message.author
-
-@discord_bot.event
-async def on_message(message):
-    if message.author == discord_bot.user:
-        return
-    
-    if message.channel.name == const.CHANNEL:
-        print('Received message from {0.author.display_name} | Content"{0.content}"'.format(message))
-        await discord_bot.process_commands(message)
-# region end
-
 # region checker
 # --------------
 def admin(ctx):
@@ -77,13 +64,68 @@ def admin(ctx):
 
 def moderator(ctx):
     return ctx.message.author.id in const.moderators or admin(ctx)
+
+def isTextChannel(channel, name_channel):
+    return type(channel) == TextChannel and channel.name == name_channel
+# region end
+
+# region discord event
+# --------------------
+@discord_bot.event
+async def on_ready():
+    print("Discord bot ready to go")
+
+@discord_bot.event
+async def on_message(message):
+    if message.author == discord_bot.user:
+        return
+
+    if isTextChannel(message.channel, const.CHANNEL):
+        print('Received message from {0.author.display_name} | Content"{0.content}"'.format(message))
+        await discord_bot.process_commands(message)
 # region end
 
 # region discord commands
 # -----------------------
 @discord_bot.command()
-async def join(ctx):
-    print(ctx.message.content)
+async def join(ctx, *, arg):
+    author = ctx.message.author
+
+    profile = await fortnite_client.fetch_profile(arg)
+    if profile is not None:
+        formatted_stats = await get_current_stats(profile.id,
+                const.platform[1])
+        
+        data = {
+                "d_id": author.id,
+                "f_id": profile.id,
+                "plat": const.platform[1],
+                "d_w": formatted_stats["duo"]["wins"],
+                "d_k": formatted_stats["duo"]["kills"],
+                "d_g": formatted_stats["duo"]["games"],
+                "s_w": formatted_stats["squad"]["wins"],
+                "s_k": formatted_stats["squad"]["kills"],
+                "s_g": formatted_stats["squad"]["games"],
+                }
+        error = await create_user(data)
+        if error is None:
+            print("create user {}".format(ctx.message.author.name)) 
+            await ctx.send("Welcome in the Try Hard gang {} " \
+                    "!".format(author.name))
+            await ctx.send(embed=await embed_stats_global(author.id))
+        else:
+            id_existing = (str(error).split("."))[1]
+            if id_existing == "fortnite_id":
+                await ctx.send("This fortnite username has already been used")
+
+            elif id_existing == "discord_id":
+                await ctx.send("You have already join!")
+
+            else:
+                await ctx.send("Something goes wrong. Sorry!")
+            
+    else:
+        await ctx.send("Aborted: Profile not found.")
 
 @discord_bot.command()
 async def up(ctx):
@@ -102,7 +144,60 @@ async def rem(ctx):
 @discord_bot.command()
 @commands.check(admin)
 async def remall(ctx):
-    print("delall")
+    await remove_users()
+    await ctx.send("All users has been deleted!")
+
+@discord_bot.command()
+async def stats(ctx):
+    stats = await compute_stats(ctx.message.author.id)
+    embed = await embed_stats(stats)
+    await ctx.send(embed=embed)
 # region end
 
+# region stats
+async def get_current_stats(profile_id, platform):
+    stats = await fortnite_client.fetch_br_stats(profile_id)
+
+    # TODO add platform verif
+    s = stats.get_stats()[platform]
+    
+    user_stats = {
+            "duo" : {
+                "kills": s["defaultduo"]["kills"],
+                "wins": s["defaultduo"]["wins"],
+                "games": s["defaultduo"]["matchesplayed"],
+                },
+            "squad" : {
+                "kills": s["defaultsquad"]["kills"],
+                "wins": s["defaultsquad"]["wins"],
+                "games": s["defaultsquad"]["matchesplayed"],
+                },
+            }
+    return user_stats 
+
+async def compute_stats(user_id):
+    stats = {}
+
+    user_data = await get_user(user_id)
+    current_stats = await get_current_stats(user_data[1], user_data[2]) 
+
+    duo_games_played = current_stats["duo"]["games"] - user_data[5]
+    stats["duo_games"] = duo_games_played
+    if not duo_games_played == 0:
+        duo_killed = current_stats["duo"]["kills"] - user_data[4]
+
+        stats["duo_kpm"] = await compute_kpm(duo_killed, duo_games_played)
+
+    squad_games_played = current_stats["squad"]["games"] - user_data[8]
+    stats["squad_games"] = squad_games_played
+    if not squad_games_played == 0:
+        squad_killed = current_stats["squad"]["kills"] - user_data[7]
+
+        stats["squad_kpm"] = await compute_kpm(squad_killed, squad_games_played)
+
+    return stats
+
+async def compute_kpm(kills, games):
+    return kills/games
+# end region
 fortnite_client.run()
