@@ -90,12 +90,16 @@ async def on_message(message):
 @discord_bot.command()
 async def join(ctx, *, arg):
     author = ctx.message.author
-
+    
+    # get the fornite profile of the user
     profile = await fortnite_client.fetch_profile(arg)
     if profile is not None:
+        # get only used data
         formatted_stats = await get_current_stats(profile.id,
                 const.platform[1])
         
+        # TODO move into create user
+        # format data to be stored
         data = {
                 "d_id": author.id,
                 "f_id": profile.id,
@@ -107,9 +111,13 @@ async def join(ctx, *, arg):
                 "s_k": formatted_stats["squad"]["kills"],
                 "s_g": formatted_stats["squad"]["games"],
                 }
+
+        # if user is exist error is not None
         error = await create_user(data)
         if error is None:
             print("create user {}".format(ctx.message.author.name)) 
+
+            # create SUCCESS
             await ctx.send("Welcome in the Try Hard gang {} " \
                     "!".format(author.name))
             await ctx.send(embed=await embed_stats_global(author.id))
@@ -164,12 +172,12 @@ async def get_current_stats(profile_id, platform):
     user_stats = {
             "duo" : {
                 "kills": s["defaultduo"]["kills"],
-                "wins": s["defaultduo"]["wins"],
+                "wins" : s["defaultduo"]["wins"],
                 "games": s["defaultduo"]["matchesplayed"],
                 },
             "squad" : {
                 "kills": s["defaultsquad"]["kills"],
-                "wins": s["defaultsquad"]["wins"],
+                "wins" : s["defaultsquad"]["wins"],
                 "games": s["defaultsquad"]["matchesplayed"],
                 },
             }
