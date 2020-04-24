@@ -1,8 +1,7 @@
 from discord.ext import commands
 
 import bot
-# import setup
-# import db
+
 
 class User(commands.Cog):
     def __init__(self, bot):
@@ -10,8 +9,10 @@ class User(commands.Cog):
 
     @commands.command()
     async def hey(self, ctx, arg):
-        profile = await bot.fortnite.fortnite_client.fetch_profile(arg)
-        await ctx.send(profile.id)
+        # profile = await bot.bot_fn.fetch_profile(arg)
+        print(profile)
+#        profile = await bot.fn_client.fetch_profile(arg)
+#        await ctx.send(profile.id)
 
 
 # @bot.discord.command()

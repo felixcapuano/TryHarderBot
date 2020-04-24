@@ -14,16 +14,16 @@ MODERATORS = []
 MIN_GAME = 30
 
 PLATFORM = {
-        "pc": {
+        "\U0001F4BB": {
             "api_key": "keyboardmouse",
-            "unicode": "\U0001F4BB",
+            "alias": "pc",
             },
-        "gamepad": {
+        "\U0001F3AE": {
             "api_key": "gamepad",
-            "unicode": "\U0001F3AE",
+            "alias": "manette",
             },
-        "mobile": {
+        "\U0001F4F1": {
             "api_key": "touch",
-            "unicode": "\U0001F4F1",
+            "alias": "tel",
             },
         }

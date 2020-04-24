@@ -2,12 +2,11 @@ import fortnitepy
 import json
 import os
 
+from datetime import datetime
 from discord.channel import TextChannel
 from discord.ext import commands
 
 import const
-from engine import *
-from embed import *
 
 # region initialisation
 # ---------------------
@@ -19,7 +18,7 @@ def get_device_auth_details():
 
 def store_device_auth_details(email, details):
     existing = get_device_auth_details()
-    existing[const.email] = details
+    existing[email] = details
 
     with open(filename, 'w') as fp:
         json.dump(existing, fp)
@@ -136,8 +135,11 @@ async def join(ctx, *, arg):
         await ctx.send("Aborted: Profile not found.")
 
 @discord_bot.command()
-async def up(ctx):
-    pass
+async def up(ctx, arg):
+    season = datetime(2020,4,1)
+    profile = await fortnite_client.fetch_profile(arg)
+    stats = await fortnite_client.fetch_br_stats(profile.id, start_time=season)
+    await ctx.send(stats.get_kd(stats.get_stats()['keyboardmouse']['defaultsquad']))
 
 @discord_bot.command()
 @commands.check(moderator)
