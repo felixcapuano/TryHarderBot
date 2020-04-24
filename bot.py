@@ -8,6 +8,7 @@ from discord.channel import TextChannel
 from discord.ext import commands
 
 import auth
+import db
 import setup
 
 # region initialisation
@@ -94,8 +95,12 @@ async def on_message(message):
 # -----------------------
 @discord_bot.command()
 async def join(ctx, *, arg):
+    profile = await fortnite_client.fetch_profile(arg)
+    if profile is None:
+        await ctx.send("Profile {} not found!")
+        return
+
     author = ctx.message.author
-    
     msg = await ctx.send("{} select your platform :".format(author.mention))
 
     for emoji in setup.PLATFORM.keys():
@@ -111,12 +116,19 @@ async def join(ctx, *, arg):
         await msg.delete()
     
     user = {
-            "ds_id": author.id,
-            "fn_id": profile.id,
-            "plat": setup.PLATFORM[reaction]
+            "discord_id": author.id,
+            "fornite_id": profile.id,
+            "platform": setup.PLATFORM[reaction]["index"]
         }
-
+    
     # store in db here
+    print(user)
+    error = await db.create_user(user)
+    if error is not None:
+        await ctx.send(error)
+        return
+
+    await ctx.send(await db.get_user(author.id))
 
 @discord_bot.command()
 async def up(ctx, arg):

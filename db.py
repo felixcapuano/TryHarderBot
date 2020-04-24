@@ -7,22 +7,24 @@ async def create_user(data):
     # check user existence
     # add user
 
-    req = """INSERT INTO users VALUES ('{d_id}',
-                                        '{f_id}',
-                                        '{plat}',
-                                        '{d_w}',
-                                        '{d_k}',
-                                        '{d_g}',
-                                        '{s_w}',
-                                        '{s_k}',
-                                        '{s_g}')
+    req = """INSERT INTO users VALUES ('{discord_id}',
+                                        '{fornite_id}',
+                                        '{platform}')
                                         """.format(**data)
     res, error = await exec(req)
         
     if error is None:
         return None
     else:
-        return error
+        id_existing = (str(error).split("."))[1]
+        if id_existing == "fortnite_id":
+            return "This fortnite username has already been used"
+
+        elif id_existing == "discord_id":
+            return "You have already join!"
+
+        else:
+            return "Something goes wrong. Sorry!"
 
 async def is_user_exist(user_id):
     res = await get_user(user_id)
