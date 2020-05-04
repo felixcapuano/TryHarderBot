@@ -1,4 +1,4 @@
 # identifier 
 email = "essais2615@gmail.com"
 password = "epicgame1997"
-discord_bot_token = "Njk4NjQ2Nzg1MjgyODAxNjc0.XpI5Sw.fmXoM9Ks2ztm_g1coxcVlDWhrDY"  # the discord bots token
+discord_bot_token = "Njk4NjQ2Nzg1MjgyODAxNjc0.Xq__Pw.jblii8alvJrH1FfQjx7YC1b-pxs"  # the discord bots token

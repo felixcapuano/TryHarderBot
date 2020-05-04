@@ -43,7 +43,7 @@ async def remove_users(user_id=None):
     await exec(req)
 
 async def exec(request):
-    conn = sql.connect(const.db)
+    conn = sql.connect(const.DB_FILE)
     c = conn.cursor()
 
     try:
@@ -56,6 +56,11 @@ async def exec(request):
     finally:
         conn.commit()
         conn.close()
+    
+async def save_setting(data):
+    with open(const.SETTING_FILE, "w") as sf:
+        json.dump(data, sf)
 
-
-
+def load_setting():
+    with open(const.SETTING_FILE, "r") as sf:
+        return json.load(sf)

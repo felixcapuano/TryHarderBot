@@ -1,14 +1,17 @@
 # storage file
 AUTH_FILE = "device_auths.json"
 DB_FILE = "users.db"
+SETTING_FILE = "setting.json"
 
 BOT_CHANNEL = "try-hard"
 
 CMD_PREFIX = "!"
 
 # white list 
-ADMINS = [421801671237042176]
-MODERATORS = []
+admins = []
+moderators = []
+
+date_season = { "year": 2020, "month": 4, "day": 3}
 
 # game minimal before ranking
 MIN_GAME = 30
@@ -17,16 +20,15 @@ PLATFORM = {
         "\U0001F4BB": {
             "api_key": "keyboardmouse",
             "alias": "pc",
-            "index": 0
             },
         "\U0001F3AE": {
             "api_key": "gamepad",
             "alias": "manette",
-            "index": 3
             },
         "\U0001F4F1": {
             "api_key": "touch",
             "alias": "tel",
-            "index": 2
             },
         }
+
+
