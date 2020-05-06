@@ -31,4 +31,6 @@ PLATFORM = {
             },
         }
 
+RANKS = ["Squad+", "Squad++", "Squad+++", "Squad++++"]
+
 

@@ -13,7 +13,7 @@ from discord.ext import commands
 import auth
 import db
 import const
-from embed import embed_stats
+from embed import embed_stats, embed_help
 
 # region initialisation
 # ---------------------
@@ -92,6 +92,11 @@ async def on_message(message):
     if message.author == discord_bot.user:
         return
 
+    for rank in const.RANKS:
+        role = discord.utils.get(message.guild.roles, name=rank)
+        if role == None:
+            await message.guild.create_role(name=rank)
+
     if isTextChannel(message.channel, const.BOT_CHANNEL):
         print('Received message from {0.author.display_name} | Content"{0.content}"'.format(message))
         await discord_bot.process_commands(message)
@@ -150,11 +155,35 @@ async def join_error(ctx, error):
 
 @discord_bot.command()
 async def up(ctx):
-    user = await db.get_user(ctx.author.id)
+    author = ctx.author
+
+    user = await db.get_user(author.id)
 
     stats = await get_stats(*user)
     
-    await rank(ctx, stats)
+    role_squad = "Squad++++"
+
+    if stats["Matches played in squad"] >= 50:
+        if 5.0 <= stats["KD Squad"]:
+            role_squad = const.RANKS[3]
+
+    if stats["Matches played in squad"] >= 30:
+        if 3.5 <= stats["KD Squad"] < 5.0:
+            print("hey")
+            role_squad = const.RANKS[2]
+
+        elif 2.0 <= stats["KD Squad"] < 3.5:
+            role_squad = const.RANKS[1]
+
+        elif stats["KD Squad"] < 2.0:
+            role_squad = const.RANKS[0]
+
+    print("name", role_squad)
+    
+    if not role_squad == "":
+        role = discord.utils.get(ctx.guild.roles, name=role_squad)
+        await author.add_roles(role)
+        await ctx.send("Your a now : {}".format(role_squad))
 
 @discord_bot.command()
 @commands.check(moderator)
@@ -186,7 +215,7 @@ async def stats(ctx):
 
     print(date_season)
     stats = await get_stats(*user, date_season=date_season)
-    mbed = await embed_stats(stats, ctx.author)
+    embed = await embed_stats(stats, ctx.author)
 
     await ctx.send(embed=embed)
 
@@ -198,39 +227,25 @@ async def season(ctx, *arg):
 
     await db.save_setting(setting)
 
+discord_bot.remove_command("help")
+@discord_bot.command()
+async def help(ctx):
+    embed = await embed_help()
+    await ctx.send(embed=embed)
+
 async def get_stats(discord_id, profile_id, platform, date_season=None):
     stats = await fortnite_client.fetch_br_stats(profile_id, start_time=date_season)
     
     stats_raw = stats.get_stats()
 
     stats_formatted = {
-            "KD Duo": stats.get_kd(stats_raw[platform]["defaultduo"]),
-            "Matches played in duo": stats_raw[platform]["defaultduo"]["matchesplayed"],
-            "KD Squad": stats.get_kd(stats_raw[platform]["defaultsquad"]),
-            "Matches played in squad": stats_raw[platform]["defaultsquad"]["matchesplayed"],
+            "KD Duo": float(stats.get_kd(stats_raw[platform]["defaultduo"])),
+            "Matches played in duo": int(stats_raw[platform]["defaultduo"]["matchesplayed"]),
+            "KD Squad": float(stats.get_kd(stats_raw[platform]["defaultsquad"])),
+            "Matches played in squad": int(stats_raw[platform]["defaultsquad"]["matchesplayed"]),
             }
 
     print(stats_formatted)
     return stats_formatted
-
-async def rank(ctx, stats):
-    author = ctx.author
-    role_squad = ""
-
-    if stats["Matches played in squad"] >= 50:
-        if 5 <= stats["KD Squad"]:
-            role_squad = "Squad++++"
-    elif stats["Matches played in squad"] >= 30:
-        if 3.5 <= stats["KD Squad"] < 5:
-            role_squad = "Squad+++"
-        elif 2 <= stats["KD Squad"] < 3.5:
-            role_squad = "Squad++"
-        elif stats["KD Squad"] < 2:
-            role_squad = "Squad+"
-
-    if not role_squad == "":
-        role = discord.utils.get(ctx.guild.roles, name=role_squad)
-        if role == None:
-            await author.add_roles(role)
 
 fortnite_client.run()
